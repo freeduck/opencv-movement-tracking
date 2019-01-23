@@ -12,9 +12,9 @@ def onMouse(event, x, y, flags, param):
     global ffframe
     global clickcount
     global corners
-    print("MOUSE" + str(x) + " " + str(y) + " " + str(cv2.EVENT_LBUTTONUP) + " " + str(event))
-    if event == cv2.EVENT_LBUTTONUP:
-        print("mouse")
+    print "MOUSE" + str(x) + " " + str(y) + " " + str(cv2.cv.CV_EVENT_LBUTTONUP) + " " + str(event)
+    if event == cv2.cv.CV_EVENT_LBUTTONUP:
+        print "mouse"
         cv2.circle(ffframe,(x,y),10,(0,0,255),-1)
         clicked = True
         clickcount = clickcount + 1
@@ -29,13 +29,11 @@ def kallibrer(cap,dest,newcameramtx,mtx,dist):
         success = True
     else:
         success, frame = cap.read()
-        success, frame = cap.read()
-        
 
     frame = cv2.undistort(frame, mtx, dist, None, newcameramtx) 
      
-    #ffframe=frame   
-    ffframe=cv2.flip(frame,-1)
+    ffframe=frame   
+    #fframe=cv2.flip(frame,0)
     #ffframe=cv2.flip(fframe,1)
 
 
@@ -48,15 +46,24 @@ def kallibrer(cap,dest,newcameramtx,mtx,dist):
 
 
     cv2.namedWindow('img')
-    cv2.setMouseCallback('img', onMouse)
+    #cv2.setMouseCallback('img', onMouse)
 
     cv2.imshow('img',ffframe)
 
     clickcount = 0
-
-    while success and cv2.waitKey(1) == -1 and clickcount < 4:
-        cv2.imshow('img',ffframe)
-        pass
+    
+    corners=[]
+    #cv2.imshow('img',ffframe)
+    r = cv2.selectROI(ffframe)
+    corners.append([r[0],r[1]])
+    r = cv2.selectROI(ffframe)
+    corners.append([r[0]+r[2],r[1]])
+    r = cv2.selectROI(ffframe)
+    corners.append([r[0]+r[2],r[1]+r[3]])
+    r = cv2.selectROI(ffframe)
+    corners.append([r[0],r[1]+r[3]])
+        
+    print corners
 
     cv2.waitKey(10)
     cv2.destroyWindow('img')
@@ -79,8 +86,8 @@ def kallibrer(cap,dest,newcameramtx,mtx,dist):
     cv2.imshow('out after mask',out)
     cv2.waitKey(100)
     
-    print("transform:")
-    print(transform)
+    print "transform:"
+    print transform
     return [transform,mask,maskcorners,ffframe]
 
 

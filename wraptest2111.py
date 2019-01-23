@@ -9,10 +9,10 @@ import pickle
 import cProfile
 import time
 #import pyglet
-from kallibrer import kallibrer
-from findcircle_blob import circleposition
-from spriteclasses import Player,Block,Border,BLACK,WHITE,GREEN,RED,BLUE
-from puckmovement import puck_movement
+from kallibrer0512 import kallibrer
+from findcircle_blob0512  import circleposition
+from spriteclasses  import Player,Block,Border,BLACK,WHITE,GREEN,RED,BLUE
+from puckmovement  import puck_movement
 from random import randint
 import copy
 
@@ -67,8 +67,8 @@ def resultscreen(hitcount):
     screen.blit(Score,(10,10))
     
 def main():
-    cap = cv2.VideoCapture(1)
-    #cap = cv2.VideoCapture("/home/lars/dev/Videos/Webcam/2017-12-20-223500.webm")
+    #cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("/home/lars/dev/Videos/Webcam/2017-12-20-223500.webm")
     #window = pyglet.window.Window()
     #cursor= window.get_system_mouse_cursor(window.CURSOR_CROSSHAIR)
     #window.set_mouse_cursor(cursor)
@@ -151,22 +151,26 @@ def main():
     time1 = time.clock()
 
     x=0
+    dircount = 0
+    pucksizelist = []
+    
     for puck in puck_movement(lambda:circleposition(cap,warp,newcameramtx,mtx,dist,mask,maskcorners)):
         time2 = time.clock()
         #print('clocktime %0.6f' % (time2-time1))     
-        #time1=time2   
+        #time1=time2,
+        #pucksizelist.append([puck[0][2][2],puck[0][2][3]])
         x+=1
         # Calls update() method on every sprite in the list
         sprite_list.update(puck[0][2][0],puck[0][2][1])
-        #if puck[1]:
-        #    dircount = dircount + 1
+        if puck[1]:
+            dircount = dircount + 1
 
         if (puck[0][2][0] > 660 and puck[0][1][0] < 640) or (puck[0][2][0] < 640 and puck[0][1][0] > 660):
             if puck[0][2][1] > 350:
                 hole = "Red"
             else:
                 hole = "Blue"
-            dircount = 0
+            
             
         screen.fill(WHITE)
         sprite_list.draw(screen)
@@ -193,7 +197,7 @@ def main():
         #timecount = timelimit - round(time2 - time1)
         
         #Timecount = myfont.render("time "+ str(timecount), 1, (0,50,0))
-        Score = myfont.render("Count "+ str(hitcount), 1, (0,50,0))
+        Score = myfont.render("Count "+ str(dircount), 1, (0,50,0))
         Hole = myfont.render("Hole "+ str(hole), 1, (0,50,0))
         
         #screen.blit(Timecount,(10,10))        
@@ -210,11 +214,14 @@ def main():
         # = time.clock()
         #if x>100:
         #s    break
+    #with open("pucksizelist","wb") as f: 
+	#    pickle.dump(pucksizelist,f)
 #cProfile.run('main()')
 
-while True:
-	main()
-	resultscreen(hitcount)
+#while True:
+main()
+	#resultscreen(hitcount)
 
 #while not    
+
 pygame.quit()

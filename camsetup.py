@@ -1,5 +1,5 @@
 import cv2
-import cv2.cv as cv
+#import cv2.cv as cv
 
 cap = cv2.VideoCapture(0)
 

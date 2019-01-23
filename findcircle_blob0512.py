@@ -16,7 +16,9 @@ def circleposition(cap,transform,newcameramtx,mtx,dist,mask,maskcorners):
      
     # Filter by Area.
     params.filterByArea = True
-    params.minArea = 75
+    params.minArea = 125
+    params.maxArea = 375
+    
      
     # Filter by Circularity
     #params.filterByCircularity = True
@@ -40,49 +42,30 @@ def circleposition(cap,transform,newcameramtx,mtx,dist,mask,maskcorners):
         if frame is None:
             return
             
-        #time1 = time.clock()
         frame = cv2.undistort(frame, mtx, dist, None, newcameramtx)
-        #time2 = time.clock()
-        #print 'undistort %0.3f' % (time2-time1)
-        #cv2.imshow('frame',frame)
-        #cv2.waitKey(3000)
         ffframe=frame
-        #fframe=cv2.flip(frame,0)
-        #ffframe=cv2.flip(fframe,1)
         
-        ulx = maskcorners[0][0] #-60 ##sorg for ikke at ryge udenfor billede
-        uly = maskcorners[0][1] #-60
-        brx = maskcorners[2][0] #+ 60
-        bry = maskcorners[2][1] #+ 60
+        ulx = maskcorners[0][0] -20 ##sorg for ikke at ryge udenfor billede
+        uly = maskcorners[0][1] -20
+        brx = maskcorners[2][0] + 20
+        bry = maskcorners[2][1] + 20
         
-        #ffframe = ffframe[uly:bry,ulx:brx]
-        #cv2.imshow('cropped',ffframe)
-        #cv2.waitKey(3000)
-               
-        #time1 = time.clock()
+        ffframe = ffframe[uly:bry,ulx:brx]
+        
         gray = cv2.cvtColor(ffframe, cv2.COLOR_BGR2GRAY)
-        #time2 = time.clock()
-        #print 'cvtColur %0.3f' % (time2-time1)
-        #cv2.imshow('gray',gray)
-        #cv2.waitKey(10)
-        #time1 = time.clock()
+
         th, dst = cv2.threshold(gray, thresh, maxValue, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-        #time2 = time.clock()
-        #print 'treshold %0.3f' % (time2-time1)
-        #cv2.imshow('dst',dst)
-        #cv2.waitKey(10)
-        out=dst
-        #out = np.zeros_like(dst)
-        #out[mask] = dst[mask]
-        #cv2.imshow('mask',out)
-        #cv2.waitKey(10)
 
         # Detect blobs.
         dtime1 = time.clock()
-        keypoints = detector.detect(out)
+        keypoints = detector.detect(dst)
         dtime2 = time.clock()
-        print('detector %0.6f' % (dtime2-dtime1))
+        #print('detector %0.6f' % (dtime2-dtime1))
         #print "keypoints" + str(keypoints)
+        
+        #for k in keypoints:
+        #    print("respovce {}".format(k.response))
+        
         if len(keypoints) > 0: 
             keypoint = [keypoints[-1]]
         else:
@@ -92,6 +75,9 @@ def circleposition(cap,transform,newcameramtx,mtx,dist,mask,maskcorners):
         if keypoint is not None:
             #print keypoint[0].pt
             circle = keypoint[0].pt
+            #circlesize = keypoint[0].size
+            #print("Size {}".format(keypoint[0].size))
+            #cv2.waitKey(5000)
             #print "im alive"
             im_with_keypoints = cv2.drawKeypoints(ffframe, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             cv2.imshow("im_with_keypoints", im_with_keypoints)
@@ -102,7 +88,7 @@ def circleposition(cap,transform,newcameramtx,mtx,dist,mask,maskcorners):
             print(np.absolute(circle[0]-l[2][0])) 
             print(np.absolute(circle[1]-l[2][1]))
             #if (np.absolute(c) > 12 or np.absolute(circle[1]-l[2][1]) > 12): ## and (np.absolute(circle[0]-l[2][0]) < 100 or np.absolute(circle[1]-l[2][1]) < 100):
-            l.append([int(circle[0]),int(circle[1])])
+            l.append([int(circle[0]+ulx),int(circle[1]+uly)])
             l=l[1:]
             #else:
             #    raise Exception("hej")
@@ -110,28 +96,14 @@ def circleposition(cap,transform,newcameramtx,mtx,dist,mask,maskcorners):
             print("else")
             continue
         
-        adpoint = l[2]
-        #adpoint[0]=adpoint[0]+ulx
-        #adpoint[1]=adpoint[1]+uly
-        point = np.array([adpoint],dtype='float32')
-        point = np.array([point])
-        #time1 = time.clock()
-        #pointUndist = cv2.undistortPoints(point, mtx, dist, None, newcameramtx)
-        #time2= time.clock()
-        #print 'undistortPoints %0.3f' % (time2-time1)
-        [[[pux,puy]]] = point #Undist
-        #pux=w-pux
-        #puy=h-puy
-        pointUndist = np.array([[[pux,puy]]],dtype='float32')
-        pointOut = cv2.perspectiveTransform(pointUndist, transform)   
+        adpoint = np.array(l[2],dtype='float32')
+        point = np.array([[l[2]]],dtype='float32')
+        pointOut = cv2.perspectiveTransform(point, transform)   
 
-        [[[x,y]]]=point
-        #[[[xu,yu]]]=pointUndist
         [[[xo,yo]]]=pointOut
-        #yield [[x,y],[xo,yo],[xu,yu]]
         
         time2 = time.clock()
         print('findcircle clocktime %0.6f' % (time2-time1))
 
-        yield [xo,yo]
+        yield [xo,yo,im_with_keypoints,keypoint[0].size]
         

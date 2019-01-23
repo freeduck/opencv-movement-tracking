@@ -34,8 +34,8 @@ def kallibrer(cap,dest,newcameramtx,mtx,dist):
 
     frame = cv2.undistort(frame, mtx, dist, None, newcameramtx) 
      
-    #ffframe=frame   
-    ffframe=cv2.flip(frame,-1)
+    ffframe=frame   
+    #fframe=cv2.flip(frame,0)
     #ffframe=cv2.flip(fframe,1)
 
 
@@ -53,18 +53,22 @@ def kallibrer(cap,dest,newcameramtx,mtx,dist):
     cv2.imshow('img',ffframe)
 
     clickcount = 0
-
-    while success and cv2.waitKey(1) == -1 and clickcount < 4:
-        cv2.imshow('img',ffframe)
-        pass
-
+    while True:
+	for pos in circleposition(cap,warp,newcameramtx,mtx,dist,mask,maskcorners):
+		
+		cv2.imshow('marker corners',pos[3])
+    
+			
+    	
+		
+		if cv2.waitKey(100) == ord(' ')
+ 
     cv2.waitKey(10)
     cv2.destroyWindow('img')
 
 
     npacorners = np.array(corners,np.float32)
     maskcorners = np.array(corners,dtype=np.int32)
-    #maskcorners = np.array([[542, 107], [562, 102], [582, 110], [598, 142], [600, 192], [601, 225], [592, 261], [572, 263], [551, 245], [526, 220], [520, 188], [518, 152], [525, 127], [524, 107]],dtype=np.int32)
     
     transform = cv2.getPerspectiveTransform(npacorners,dest)
     
